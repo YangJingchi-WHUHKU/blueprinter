@@ -30,16 +30,20 @@
 
 ## 📁 仓库结构
 
-| 路径 | 内容 |
-|---|---|
-| [`docs/PRD.md`](docs/PRD.md) | 完整产品需求文档（持续更新中） |
-| [`docs/PRD.docx`](docs/PRD.docx) | PRD Word 版（汇报用） |
-| [`docs/BP.md`](docs/BP.md) | 商业计划书 markdown |
-| [`docs/BP.pptx`](docs/BP.pptx) | BP PPT 版（路演用） |
-| [`docs/BP.docx`](docs/BP.docx) | BP Word 版 |
-| [`tech/architecture.md`](tech/architecture.md) | 技术架构 + 12 个待定决策点 |
-| [`tech/blender-poc/`](tech/blender-poc/) | Blender 程序化建模 PoC（已实测） |
-| [`decisions/`](decisions/) | 关键架构/产品决策记录（ADR） |
+> 三档分类的硬规则在 [`CLAUDE.md`](CLAUDE.md)，**所有新文件落地前先看 30 秒**。
+
+| 顶层目录 | 类别 | 内容 |
+|---|---|---|
+| [`research/`](research/) | **调研** | 选型对比、踩坑实测、外部资料归档（按日期命名）|
+| [`tech/`](tech/) | **技术** | 架构、源代码、可跑的 PoC |
+| [`docs/`](docs/) | **结果** | 对外成品：PRD、BP、提案、PDF、PPT |
+| [`decisions/`](decisions/) | ADR | 关键架构/产品决策记录（不可变） |
+
+**热门入口**：
+- [`docs/PRD.md`](docs/PRD.md) / [`docs/BP.md`](docs/BP.md) —— 产品 & 商业
+- [`tech/architecture.md`](tech/architecture.md) —— 技术全景图 + 12 个决策点
+- [`tech/blender-poc/`](tech/blender-poc/) —— Blender 程序化建模 PoC（已实测）
+- [`research/`](research/) —— 调研归档（首篇：[展示技术栈对比](research/2026-05-25-展示技术栈对比.md)）
 
 ---
 
@@ -101,6 +105,7 @@
 - 不要直接推 main
 
 ### 文档协作
+- **新建文件前先看 [`CLAUDE.md`](CLAUDE.md)** —— 三档分类决策树
 - Markdown 直接改、PR 合入
 - Word/PPT 修改后**同时同步 markdown 源**，避免分裂
 - 重大决策开 ADR（`decisions/NNNN-xxx.md`）
