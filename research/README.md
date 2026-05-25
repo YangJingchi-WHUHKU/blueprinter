@@ -24,6 +24,7 @@
 | 日期 | 主题 | 作者 | 状态 |
 |---|---|---|---|
 | 2026-05-25 | [展示技术栈对比](2026-05-25-展示技术栈对比.md) —— Blender vs Three.js vs SD vs Freestyle，5 条路线实测 | @YangJingchi | ✅ 已结论：Hackathon 走 Three.js GLB，正式产品走 B+A 混合 |
+| 2026-05-25 | [资产库选型起步](2026-05-25-资产库选型起步.md) —— PolyHaven(纹理/HDRI) + BlenderKit(模型) 锁定，6 项行动项待认领 | @YangJingchi | 🟡 进行中（起步声明，详细评估待 3D 工程师认领）|
 
 ---
 
@@ -41,7 +42,7 @@
 
 - [ ] **Agent 编排框架选型**：LangGraph vs Claude Agent SDK vs 自写状态机（AI 工程师）
 - [ ] **GPU 部署方案**：阿里云 A10 vs AutoDL 4090 vs 自购，成本/速度/稳定性对比（3D 工程师 + 产品）
-- [ ] **资产库**：PolyHaven / BlenderKit / Sketchfab，中式 + 工业资产稀缺度评估（3D 工程师）
+- [x] ~~**资产库**：PolyHaven / BlenderKit / Sketchfab，中式 + 工业资产稀缺度评估~~ → 已起步：[资产库选型起步](2026-05-25-资产库选型起步.md)，等 3D 工程师做覆盖率实测
 - [ ] **法规 RAG**：ChromaDB 实测，5–10 条核心规则的硬编码 vs 检索 trade-off（AI 工程师）
 - [ ] **前端实时通信**：WebSocket vs SSE，Agent 对话流的最佳协议（前端）
 
