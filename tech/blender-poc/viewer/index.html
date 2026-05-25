@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>BluePrinter · Three.js 实时查看器</title>
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; background: #1a1a1a; font-family: -apple-system, "PingFang SC", sans-serif; overflow: hidden; }
+  #app { width: 100vw; height: 100vh; }
+  #hud {
+    position: absolute; top: 16px; left: 16px; color: #eee;
+    background: rgba(0,0,0,0.55); padding: 12px 16px; border-radius: 8px;
+    font-size: 13px; line-height: 1.6; backdrop-filter: blur(8px);
+    max-width: 320px; pointer-events: none;
+  }
+  #hud h1 { margin: 0 0 6px 0; font-size: 14px; font-weight: 600; color: #6ab7ff; }
+  #hud .hint { color: #aaa; font-size: 12px; margin-top: 8px; }
+  #stats { position: absolute; bottom: 12px; right: 12px; color: #888; font-size: 11px; font-family: monospace; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="hud">
+  <h1>BluePrinter · 实时 3D 查看器</h1>
+  Blender 程序化生成场景 → 导出 GLB → Three.js 网页交互<br/>
+  <div class="hint">🖱️ 左键旋转 · 右键平移 · 滚轮缩放</div>
+</div>
+<div id="stats">loading…</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+
+const container = document.getElementById('app');
+const statsEl = document.getElementById('stats');
+
+// renderer
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(window.devicePixelRatio);
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+container.appendChild(renderer.domElement);
+
+// scene
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x202326);
+
+// PMREM 环境贴图（用 RoomEnvironment 代替真实 HDRI，零下载）
+const pmrem = new THREE.PMREMGenerator(renderer);
+scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+
+// camera
+const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 200);
+camera.position.set(4.5, 2.2, 5.5);
+
+// controls
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.08;
+controls.target.set(0, 1.0, 0);
+controls.minDistance = 1.5;
+controls.maxDistance = 15;
+controls.maxPolarAngle = Math.PI * 0.495; // 不让镜头转到地面以下
+
+// 辅助光
+const hemi = new THREE.HemisphereLight(0xffffff, 0x404040, 0.6);
+scene.add(hemi);
+
+const dir = new THREE.DirectionalLight(0xfff2dd, 1.6);
+dir.position.set(6, 8, 4);
+dir.castShadow = true;
+dir.shadow.mapSize.set(2048, 2048);
+dir.shadow.camera.left = -8;
+dir.shadow.camera.right = 8;
+dir.shadow.camera.top = 8;
+dir.shadow.camera.bottom = -8;
+dir.shadow.bias = -0.0005;
+scene.add(dir);
+
+// 地面阴影承接
+const ground = new THREE.Mesh(
+  new THREE.PlaneGeometry(40, 40),
+  new THREE.ShadowMaterial({ opacity: 0.25 })
+);
+ground.rotation.x = -Math.PI / 2;
+ground.receiveShadow = true;
+scene.add(ground);
+
+// 加载 GLB
+const loader = new GLTFLoader();
+const t0 = performance.now();
+loader.load(
+  './scene.glb',
+  (gltf) => {
+    const root = gltf.scene;
+    root.traverse((o) => {
+      if (o.isMesh) {
+        o.castShadow = true;
+        o.receiveShadow = true;
+      }
+    });
+    scene.add(root);
+
+    // 自动对焦：用 bounding box 把镜头摆好
+    const box = new THREE.Box3().setFromObject(root);
+    const size = box.getSize(new THREE.Vector3()).length();
+    const center = box.getCenter(new THREE.Vector3());
+    controls.target.copy(center);
+    camera.position.copy(center).add(new THREE.Vector3(size * 0.6, size * 0.35, size * 0.7));
+    controls.update();
+
+    const loadMs = (performance.now() - t0).toFixed(0);
+    let triCount = 0;
+    root.traverse((o) => { if (o.isMesh && o.geometry) triCount += (o.geometry.index ? o.geometry.index.count : o.geometry.attributes.position.count) / 3; });
+    statsEl.textContent = `加载 ${loadMs}ms · ${Math.round(triCount)} tris`;
+  },
+  (xhr) => {
+    if (xhr.total) statsEl.textContent = `加载中 ${((xhr.loaded / xhr.total) * 100).toFixed(0)}%`;
+  },
+  (err) => {
+    statsEl.textContent = '加载失败：请确认同目录下有 scene.glb';
+    console.error(err);
+  }
+);
+
+// 自适应
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+// 渲染循环
+function tick() {
+  controls.update();
+  renderer.render(scene, camera);
+  requestAnimationFrame(tick);
+}
+tick();
+</script>
+</body>
+</html>
