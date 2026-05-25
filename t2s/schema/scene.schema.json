@@ -1,0 +1,116 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/text2blender/scene.schema.json",
+  "title": "Text2Blender Scene",
+  "type": "object",
+  "required": ["unit", "metadata", "rooms", "walls", "doors", "windows", "furniture"],
+  "properties": {
+    "unit": {
+      "type": "string",
+      "enum": ["m"]
+    },
+    "metadata": {
+      "type": "object",
+      "required": ["name", "source_prompt", "area_sqm"],
+      "properties": {
+        "name": { "type": "string" },
+        "source_prompt": { "type": "string" },
+        "area_sqm": { "type": "number", "exclusiveMinimum": 0 },
+        "style": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "rooms": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/room" }
+    },
+    "walls": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/wall" }
+    },
+    "doors": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/opening" }
+    },
+    "windows": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/opening" }
+    },
+    "furniture": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/furniture" }
+    }
+  },
+  "$defs": {
+    "point2": {
+      "type": "array",
+      "prefixItems": [{ "type": "number" }, { "type": "number" }],
+      "items": false
+    },
+    "room": {
+      "type": "object",
+      "required": ["id", "name", "type", "polygon"],
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "type": {
+          "type": "string",
+          "enum": ["bedroom", "living_room", "kitchen", "bathroom", "entry", "balcony", "other"]
+        },
+        "polygon": {
+          "type": "array",
+          "minItems": 3,
+          "items": { "$ref": "#/$defs/point2" }
+        },
+        "height": { "type": "number", "exclusiveMinimum": 0 }
+      }
+    },
+    "wall": {
+      "type": "object",
+      "required": ["id", "start", "end"],
+      "properties": {
+        "id": { "type": "string" },
+        "start": { "$ref": "#/$defs/point2" },
+        "end": { "$ref": "#/$defs/point2" },
+        "height": { "type": "number", "exclusiveMinimum": 0 },
+        "thickness": { "type": "number", "exclusiveMinimum": 0 },
+        "kind": { "type": "string", "enum": ["exterior", "interior"] }
+      }
+    },
+    "opening": {
+      "type": "object",
+      "required": ["id", "wall_id", "center", "width", "height"],
+      "properties": {
+        "id": { "type": "string" },
+        "wall_id": { "type": "string" },
+        "center": { "$ref": "#/$defs/point2" },
+        "width": { "type": "number", "exclusiveMinimum": 0 },
+        "height": { "type": "number", "exclusiveMinimum": 0 },
+        "sill_height": { "type": "number", "minimum": 0 },
+        "swing": { "type": "string", "enum": ["left", "right", "sliding", "none"] }
+      }
+    },
+    "furniture": {
+      "type": "object",
+      "required": ["id", "type", "room_id", "position", "size"],
+      "properties": {
+        "id": { "type": "string" },
+        "type": { "type": "string" },
+        "room_id": { "type": "string" },
+        "position": {
+          "type": "array",
+          "prefixItems": [{ "type": "number" }, { "type": "number" }, { "type": "number" }],
+          "items": false
+        },
+        "size": {
+          "type": "array",
+          "prefixItems": [{ "type": "number" }, { "type": "number" }, { "type": "number" }],
+          "items": false
+        },
+        "rotation_deg": { "type": "number" },
+        "label": { "type": "string" }
+      }
+    }
+  },
+  "additionalProperties": false
+}

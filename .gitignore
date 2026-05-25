@@ -42,6 +42,11 @@ build/
 *.blend1
 *.blend2
 __blender_cache__/
+*.glb
+*.gltf
+*.bin
+t2s/assets/
+t2s/output/
 
 # Local renders (large files)
 renders/
